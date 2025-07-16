@@ -10,6 +10,7 @@ import (
 
 func GetTasks(c *gin.Context) {
 	id := c.Param("id")
+
 	if id != "" {
 		task, err := data.FindTaskByID(id)
 		if err != nil {
@@ -19,40 +20,56 @@ func GetTasks(c *gin.Context) {
 		c.IndentedJSON(http.StatusOK, task)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, models.Tasks)
+
+	tasks, err := data.GetAllTasks()
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not fetch tasks"})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, tasks)
 }
 
 func PostTasks(c *gin.Context) {
 	var newTask models.Task
 
 	if err := c.BindJSON(&newTask); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
 		return
 	}
 
-	// Add the new album to the slice.
-	data.AppendToTasks(newTask)
+	if err := data.InsertTask(newTask); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "could not create task"})
+		return
+	}
 	c.IndentedJSON(http.StatusCreated, newTask)
 }
 
 func PutTasks(c *gin.Context) {
-	var updatedTask models.Task
 	id := c.Param("id")
+	var updatedTask models.Task
+
 	if err := c.BindJSON(&updatedTask); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid input"})
 		return
 	}
-	if data.UpdateTask(id, updatedTask) {
-		c.IndentedJSON(http.StatusOK, updatedTask)
+
+	err := data.UpdateTask(id, updatedTask)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "task not found"})
 		return
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "task not found"})
-	// return
+
+	c.IndentedJSON(http.StatusOK, updatedTask)
 }
 
 func DeleteTasks(c *gin.Context) {
 	id := c.Param("id")
-	if data.DeleteTask(id) {
-		c.IndentedJSON(http.StatusNoContent, gin.H{"message": "task deleted"})
+
+	err := data.DeleteTask(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "task not found"})
 		return
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "task not found"})
+
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "task deleted"})
 }
