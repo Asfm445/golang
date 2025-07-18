@@ -8,6 +8,59 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func UserRegistration(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// User registration logic
+	err := data.UserRegistration(user)
+
+	if err != nil {
+		c.JSON(500, err.Error())
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "User registered successfully"})
+
+}
+
+func Promote(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request payload"})
+		return
+	}
+	if user.Email == "" {
+		c.JSON(400, gin.H{"error": "Email is required"})
+		return
+	}
+	err := data.PromoteUser(user.Email)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, gin.H{"message": "User promoted successfully"})
+}
+
+func UserLogin(c *gin.Context) {
+	var user models.User
+	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(400, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	jwtToken, err := data.UserLogin(user.Email, user.Password)
+	if err != nil {
+		c.JSON(401, gin.H{"error": "Invalid email or password"})
+		return
+	}
+
+	c.JSON(200, gin.H{"message": "User logged in successfully", "token": jwtToken})
+}
+
 func GetTasks(c *gin.Context) {
 	id := c.Param("id")
 

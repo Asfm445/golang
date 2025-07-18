@@ -1,187 +1,191 @@
-# 📘 Task Manager API Documentation
+# Task Manager API
 
-## Overview
+A simple RESTful task manager built with **Go**, **Gin**, and **MongoDB**.  
+It includes JWT-based authentication and role-based authorization (`admin` and `user` roles).
 
-The **Task Manager API** allows clients to perform **CRUD** operations on tasks stored in a **MongoDB** database. Tasks contain fields like `id`, `title`, `description`, `due_date`, and `status`.
+## 📦 Features
 
-## Base URL
+- First registered user becomes **admin**
+- All other users register as **user**
+- Admins can promote other users to **admin**
+- JWT-based login & authentication
+- Role-based access control for endpoints
+- Users can view tasks; Admins can manage tasks
+
+---
+
+## 📁 Routes
+
+### 🔓 Public Routes (No Auth Required)
+
+#### `POST /register`
+
+Register a new user.  
+**Note**: The first registered user will automatically have the `admin` role.
+
+- **Body JSON**:
+  ```json
+  {
+    "id": "123",
+    "email": "user@example.com",
+    "password": "password123"
+  }
+  ```
+
+#### `POST /login`
+
+Login and receive a JWT token.
+
+- **Body JSON**:
+
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "password123"
+  }
+  ```
+
+- **Response**:
+  ```json
+  {
+    "message": "User logged in successfully",
+    "token": "<jwt_token>"
+  }
+  ```
+
+---
+
+## 🔐 Protected Routes (Auth Required)
+
+Include JWT in the `Authorization` header as:
 
 ```
-http://localhost:8081
+Bearer <token>
 ```
 
-## Endpoints
+### 🧑 User Role
 
-### 1. 🔍 Get All Tasks
+#### `GET /tasks`
 
-- **Endpoint:** `GET /tasks`
-- **Description:** Retrieve all tasks.
-- **Response:**
-  - **Status Code:** `200 OK`
-  - **Body:**
-    ```json
-    [
-      {
-        "id": "1",
-        "title": "Task 1",
-        "description": "First task",
-        "due_date": "2025-07-15T01:34:06.88226-07:00",
-        "status": "Pending"
-      },
-      ...
-    ]
-    ```
+Get all tasks.  
+Accessible to `user` and `admin`.
 
-### 2. 🔍 Get Task by ID
+#### `GET /tasks/:id`
 
-- **Endpoint:** `GET /tasks/:id`
-- **Description:** Retrieve a task by its ID.
-- **Parameters:**
-  - `id` (string): Task ID to fetch.
-- **Responses:**
-  - **200 OK**
-    ```json
-    {
-      "id": "1",
-      "title": "Task 1",
-      "description": "First task",
-      "due_date": "2025-07-15T01:34:06.88226-07:00",
-      "status": "Pending"
-    }
-    ```
-  - **404 Not Found**
-    ```json
-    {
-      "message": "task not found"
-    }
-    ```
+Get a specific task by ID.
 
-### 3. 🆕 Create a Task
+---
 
-- **Endpoint:** `POST /tasks`
-- **Description:** Create a new task.
-- **Request:**
-  - **Content-Type:** `application/json`
-  - **Body:**
-    ```json
-    {
-      "id": "4",
-      "title": "Task 4",
-      "description": "Fourth task",
-      "due_date": "2025-07-15T01:34:06.88226-07:00",
-      "status": "Pending"
-    }
-    ```
-- **Response:**
-  - **201 Created**
-    ```json
-    {
-      "id": "4",
-      "title": "Task 4",
-      "description": "Fourth task",
-      "due_date": "2025-07-15T01:34:06.88226-07:00",
-      "status": "Pending"
-    }
-    ```
-  - **500 Internal Server Error**
-    ```json
-    {
-      "message": "could not create task"
-    }
-    ```
+### 🔒 Admin Role
 
-### 4. 🔁 Update an Existing Task
+#### `POST /tasks`
 
-- **Endpoint:** `PUT /tasks/:id`
-- **Description:** Update an existing task.
-- **Request:**
-  - **Content-Type:** `application/json`
-  - **Body:**
-    ```json
-    {
-      "id": "4",
-      "title": "Updated Task 4",
-      "description": "Updated fourth task",
-      "due_date": "2025-07-16T01:34:06.88226-07:00",
-      "status": "In Progress"
-    }
-    ```
-- **Response:**
-  - **200 OK**
-    ```json
-    {
-      "id": "4",
-      "title": "Updated Task 4",
-      "description": "Updated fourth task",
-      "due_date": "2025-07-16T01:34:06.88226-07:00",
-      "status": "In Progress"
-    }
-    ```
-  - **404 Not Found**
-    ```json
-    {
-      "message": "task not found"
-    }
-    ```
+Create a new task.
 
-### 5. 🗑️ Delete a Task
+#### `PUT /tasks/:id`
 
-- **Endpoint:** `DELETE /tasks/:id`
-- **Description:** Delete a task by its ID.
-- **Parameters:**
-  - `id` (string): ID of the task to delete.
-- **Response:**
-  - **200 OK**
-    ```json
-    {
-      "message": "task deleted"
-    }
-    ```
-  - **404 Not Found**
-    ```json
-    {
-      "message": "task not found"
-    }
-    ```
+Update an existing task.
 
-## 🧩 Error Responses
+#### `DELETE /tasks/:id`
 
-- **400 Bad Request**: Invalid or malformed request.
-- **404 Not Found**: Task not found.
-- **500 Internal Server Error**: Database error or internal issue.
+Delete a task.
 
-## 💡 Example Usage
+#### `PATCH /promote`
 
-### ✅ Get All Tasks
+Promote a user to **admin** using their email.  
+Only an existing **admin** can promote others.
 
-```bash
-curl -X GET http://localhost:8081/tasks
+- **Body JSON**:
+  ```json
+  {
+    "email": "user@example.com"
+  }
+  ```
+
+Example scenario:
+
+1. `admin@example.com` registers first → becomes admin automatically.
+2. `user@example.com` registers → becomes a regular user.
+3. `admin@example.com` logs in and sends a PATCH `/promote` request with `user@example.com`'s email.
+4. Now `user@example.com` is also an admin.
+
+---
+
+## 🔑 Authentication & Authorization
+
+### JWT Payload
+
+The token includes:
+
+- `user_id`
+- `email`
+- `role`
+- `exp`, `iat`
+
+### Middleware
+
+All protected routes use:
+
+```go
+middleware.AuthMiddleware("role")
 ```
 
-### ✅ Get Task by ID
+This checks:
 
-```bash
-curl -X GET http://localhost:8081/tasks/4
+- If the token is valid
+- If the user's role matches the required one (`admin`, `user`, etc.)
+
+---
+
+## 🧪 Admin Promotion Flow Summary
+
+1. First user is assigned `admin` role during registration.
+2. Admin can promote others using their email via `PATCH /promote`.
+3. Promoted users gain access to admin routes.
+
+---
+
+## 📌 Technologies Used
+
+- Go (Golang)
+- Gin Web Framework
+- MongoDB
+- JWT (Authentication)
+- bcrypt (Password hashing)
+
+---
+
+## 🗂 Project Structure
+
+```
+.
+├── controllers/
+│   └── task-controller.go
+├── middleware/
+│   └── auth_middleware.go
+├── models/
+│   └── user.go, task.go
+├── data/
+│   └── task_service.go, user_service.go
+├── router/
+│   └── router.go
+├── main.go
+├── docs/
+│   └── documentation.md
+├── go.mod
+└── go.sum
 ```
 
-### ✅ Create a New Task
+---
 
-```bash
-curl -X POST http://localhost:8081/tasks   -H "Content-Type: application/json"   -d '{"id": "4", "title": "Task 4", "description": "Fourth task", "due_date": "2025-07-15T01:34:06.88226-07:00", "status": "Pending"}'
-```
+## 🛡️ Security Notes
 
-### ✅ Update a Task
+- Passwords are hashed using `bcrypt`
+- JWT tokens include expiration (`exp`) and issue time (`iat`)
+- Sensitive routes are protected by role-based middleware
 
-```bash
-curl -X PUT http://localhost:8081/tasks/4   -H "Content-Type: application/json"   -d '{"id": "4", "title": "Updated Task 4", "description": "Updated task", "due_date": "2025-07-16T01:34:06.88226-07:00", "status": "Completed"}'
-```
+---
 
-### ✅ Delete a Task
+## 📬 Contact
 
-```bash
-curl -X DELETE http://localhost:8081/tasks/4
-```
-
-## ✅ Conclusion
-
-This API provides a RESTful interface to manage tasks. All data is persisted in MongoDB. Make sure to send well-formed JSON and handle all responses accordingly.
+If you have any questions or want to contribute, feel free to open an issue or reach out.

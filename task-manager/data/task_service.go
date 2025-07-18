@@ -15,6 +15,8 @@ import (
 var client *mongo.Client
 var taskCollection *mongo.Collection
 
+// var userCollection *mongo.Collection
+
 func ConnectToDb() {
 	// Set options and connect
 	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
@@ -35,6 +37,8 @@ func ConnectToDb() {
 
 	// Select DB and collection
 	taskCollection = client.Database("taskdb").Collection("tasks")
+	userCollection = client.Database("taskdb").Collection("users")
+	// userCollection = client.Database("taskdb").Collection("users")
 	log.Println("✅ Connected to MongoDB and task collection initialized.")
 }
 
