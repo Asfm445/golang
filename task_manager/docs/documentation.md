@@ -158,7 +158,7 @@ This checks:
 ## 🗂 Project Structure
 
 ```
-.
+task-manager/
 ├── controllers/
 │   └── task-controller.go
 ├── middleware/

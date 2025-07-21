@@ -1,9 +1,9 @@
-package middleware
+package infrastructure
 
 import (
 	"fmt"
 	"strings"
-	"task_manager/data"
+
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -32,7 +32,7 @@ func AuthMiddleware(role string) gin.HandlerFunc {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return []byte(data.JwtSecret), nil
+			return []byte(JwtSecret), nil
 		})
 
 		if err != nil || !token.Valid {
