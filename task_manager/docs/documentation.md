@@ -158,22 +158,29 @@ This checks:
 ## 🗂 Project Structure
 
 ```
+
 task-manager/
-├── controllers/
-│   └── task-controller.go
-├── middleware/
-│   └── auth_middleware.go
-├── models/
-│   └── user.go, task.go
-├── data/
-│   └── task_service.go, user_service.go
-├── router/
-│   └── router.go
-├── main.go
-├── docs/
-│   └── documentation.md
-├── go.mod
-└── go.sum
+├── Delivery/
+│   ├── main.go
+│   ├── controllers/
+│   │   └── controller.go
+│   └── routers/
+│       └── router.go
+├── Domain/
+|   ├── task.go
+│   └── user.go
+├── Infrastructure/
+│   ├── auth_middleWare.go
+│   ├── mongo.go
+│   ├── jwt_service.go
+│   └── password_service.go
+├── Repositories/
+│   ├── task_repository.go
+│   └── user_repository.go
+└── Usecases/
+    ├── task_usecases.go
+    └── user_usecases.go
+
 ```
 
 ---
