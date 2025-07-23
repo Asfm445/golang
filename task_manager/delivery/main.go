@@ -13,7 +13,8 @@ func main() {
 	db := infrastructure.InitMongoDB()
 
 	// ==== Repositories ====
-	taskRepo := repositories.NewTaskRepositoryMongo(db)
+	wrappedCollection := repositories.NewRealMongoCollection(db.Collection("tasks"))
+	taskRepo := repositories.NewTaskRepositoryMongoFromCollection(wrappedCollection) // ✅ works!
 	userRepo := repositories.NewUserMongoRepo(db)
 
 	// ==== Usecases ====
