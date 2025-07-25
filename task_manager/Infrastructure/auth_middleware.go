@@ -1,85 +1,43 @@
 package infrastructure
 
 import (
-	"fmt"
+	"net/http"
 	"strings"
+	"task_manager/domain"
 
-	"time"
-
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	// "github.com/golang-jwt/jwt"
 )
 
-func AuthMiddleware(role string) gin.HandlerFunc {
+func AuthMiddleware(tokenService domain.TokenService, requiredRole string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(401, gin.H{"error": "Authorization header required"})
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
 			return
 		}
 
-		authParts := strings.Split(authHeader, " ")
-		if len(authParts) != 2 || strings.ToLower(authParts[0]) != "bearer" {
-			c.JSON(401, gin.H{"error": "Invalid authorization format"})
-			c.Abort()
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization format"})
 			return
 		}
 
-		tokenStr := authParts[1]
-		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			return []byte(JwtSecret), nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(401, gin.H{"error": "Invalid or expired token"})
-			c.Abort()
+		claims, err := tokenService.VerifyToken(parts[1])
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			c.JSON(401, gin.H{"error": "Invalid token claims"})
-			c.Abort()
+		// Check for role permission
+		if claims.Role == "user" && requiredRole == "admin" {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Forbidden: insufficient permissions"})
 			return
 		}
 
-		exp, ok := claims["exp"].(float64)
-		if !ok {
-			c.JSON(401, gin.H{"error": "Invalid token expiration"})
-			c.Abort()
-			return
-		}
+		c.Set("user_email", claims.Email)
+		c.Set("user_id", claims.UserID)
+		c.Set("user_role", claims.Role)
 
-		if int64(exp) < time.Now().Unix() {
-			c.JSON(401, gin.H{"error": "Token has expired"})
-			c.Abort()
-			return
-		}
-
-		userEmail, ok := claims["email"].(string)
-		if !ok {
-			c.JSON(401, gin.H{"error": "Invalid user ID in token"})
-			c.Abort()
-			return
-		}
-
-		roleClaim, ok := claims["role"].(string)
-		if !ok {
-			c.JSON(401, gin.H{"error": "Invalid role in token"})
-			c.Abort()
-			return
-		}
-		if roleClaim == "user" && role == "admin" {
-			c.JSON(403, gin.H{"error": "Forbidden: insufficient permissions" + roleClaim})
-			c.Abort()
-			return
-		}
-		c.Set("user_email", userEmail)
 		c.Next()
 	}
 }

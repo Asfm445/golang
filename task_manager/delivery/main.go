@@ -16,16 +16,20 @@ func main() {
 	taskRepo := repositories.NewTaskRepositoryMongo(db)
 	userRepo := repositories.NewUserMongoRepo(db)
 
+	// ==== Services ====
+	hasher := infrastructure.BcryptHasher{}
+	tokenService := infrastructure.NewJWTService()
+
 	// ==== Usecases ====
 	taskUsecase := usecases.NewTaskUseCase(taskRepo)
-	userUsecase := usecases.NewUserUseCase(userRepo)
+	userUsecase := usecases.NewUserUseCase(userRepo, hasher, tokenService)
 
 	// ==== Controllers ====
 	taskController := controllers.NewTaskController(*taskUsecase)
 	userController := controllers.NewUserController(userUsecase)
 
 	// ==== Router ====
-	r := router.SetupRouter(taskController, userController)
+	r := router.SetupRouter(taskController, userController, tokenService)
 
 	// Start server
 	r.Run("localhost:8081")
