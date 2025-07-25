@@ -9,7 +9,6 @@ type User struct {
 
 type UserRepository interface {
 	Register(user User) error
-	Login(email, password string) (string, error)
-	Promote(email string) error
 	FindByEmail(email string) (User, error)
+	Promote(email string) error
 }

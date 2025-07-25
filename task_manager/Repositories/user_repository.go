@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"task_manager/domain"
-	"task_manager/infrastructure"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,30 +37,7 @@ func (r *UserMongoRepo) Register(user domain.User) error {
 		user.Role = "user"
 	}
 
-	hashed, err := infrastructure.HashPassword(user.Password)
-	if err != nil {
-		return err
-	}
-	user.Password = hashed
-
 	_, err = r.Collection.InsertOne(context.TODO(), user)
-	return err
-}
-
-func (r *UserMongoRepo) Login(email, password string) (string, error) {
-	user, err := r.FindByEmail(email)
-	if err != nil {
-		return "", err
-	}
-	if !infrastructure.CheckPasswordHash(user.Password, password) {
-		return "", errors.New("invalid credentials")
-	}
-
-	return infrastructure.GenerateToken(user.ID, user.Email, user.Role)
-}
-
-func (r *UserMongoRepo) Promote(email string) error {
-	_, err := r.Collection.UpdateOne(context.TODO(), bson.M{"email": email}, bson.M{"$set": bson.M{"role": "admin"}})
 	return err
 }
 
@@ -69,4 +45,9 @@ func (r *UserMongoRepo) FindByEmail(email string) (domain.User, error) {
 	var user domain.User
 	err := r.Collection.FindOne(context.TODO(), bson.M{"email": email}).Decode(&user)
 	return user, err
+}
+
+func (r *UserMongoRepo) Promote(email string) error {
+	_, err := r.Collection.UpdateOne(context.TODO(), bson.M{"email": email}, bson.M{"$set": bson.M{"role": "admin"}})
+	return err
 }
