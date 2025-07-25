@@ -5,14 +5,17 @@ import (
 	"task_manager/domain"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TaskRepositoryMongo struct {
-	collection domain.MongoCollection
+	collection *mongo.Collection
 }
 
-func NewTaskRepositoryMongoFromCollection(col domain.MongoCollection) *TaskRepositoryMongo {
-	return &TaskRepositoryMongo{collection: col}
+func NewTaskRepositoryMongo(db *mongo.Database) *TaskRepositoryMongo {
+	return &TaskRepositoryMongo{
+		collection: db.Collection("tasks"),
+	}
 }
 
 func (r *TaskRepositoryMongo) Insert(task domain.Task) error {
