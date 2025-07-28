@@ -25,7 +25,7 @@ func main() {
 	userUsecase := usecases.NewUserUseCase(userRepo, hasher, tokenService)
 
 	// ==== Controllers ====
-	taskController := controllers.NewTaskController(*taskUsecase)
+	taskController := controllers.NewTaskController(taskUsecase)
 	userController := controllers.NewUserController(userUsecase)
 
 	// ==== Router ====

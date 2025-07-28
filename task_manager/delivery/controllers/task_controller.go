@@ -10,10 +10,10 @@ import (
 )
 
 type TaskController struct {
-	usecase usecases.TaskUseCase
+	usecase usecases.TaskUseCaseInterface
 }
 
-func NewTaskController(uc usecases.TaskUseCase) *TaskController {
+func NewTaskController(uc usecases.TaskUseCaseInterface) *TaskController {
 	return &TaskController{usecase: uc}
 }
 

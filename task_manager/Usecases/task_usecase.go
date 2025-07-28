@@ -2,6 +2,14 @@ package usecases
 
 import "task_manager/domain"
 
+type TaskUseCaseInterface interface {
+	CreateTask(task domain.Task) error
+	GetTask(id string) (domain.Task, error)
+	UpdateTask(id string, task domain.Task) error
+	DeleteTask(id string) error
+	ListTasks() ([]domain.Task, error)
+}
+
 type TaskUseCase struct {
 	repo domain.TaskRepository
 }

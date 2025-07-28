@@ -43,19 +43,25 @@ func (r *TaskRepositoryMongo) Delete(id string) error {
 }
 
 func (r *TaskRepositoryMongo) FindAll() ([]domain.Task, error) {
-	cursor, err := r.collection.Find(context.TODO(), bson.M{})
+	ctx := context.TODO()
+	cursor, err := r.collection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(context.TODO())
+	defer cursor.Close(ctx)
 
 	var tasks []domain.Task
-	for cursor.Next(context.TODO()) {
+	for cursor.Next(ctx) {
 		var task domain.Task
 		if err := cursor.Decode(&task); err != nil {
 			return nil, err
 		}
 		tasks = append(tasks, task)
 	}
+
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
 	return tasks, nil
 }

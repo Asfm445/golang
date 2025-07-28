@@ -9,6 +9,11 @@ import (
 
 var SecretKey = []byte("asfm")
 
+// type JwtService interface {
+// 	GenerateToken(userID, email, role string) (string, error)
+// 	VerifyToken(tokenStr string) (*domain.UserClaims, error)
+// }
+
 type JWTService struct {
 	SecretKey string
 }

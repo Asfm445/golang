@@ -2,6 +2,12 @@ package usecases
 
 import "task_manager/domain"
 
+type UserUseCaseInterface interface {
+	Register(user domain.User) error
+	Login(email, password string) (string, error)
+	Promote(email string) error
+}
+
 type UserUseCase struct {
 	Repo   domain.UserRepository
 	Hasher domain.Hasher
