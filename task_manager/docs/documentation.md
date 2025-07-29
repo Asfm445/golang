@@ -152,18 +152,21 @@ This checks:
 - MongoDB
 - JWT (Authentication)
 - bcrypt (Password hashing)
+- Testify and mtest (Unit Testing)
 
 ---
 
 ## 🗂 Project Structure
 
 ```
-
 task-manager/
 ├── Delivery/
 │   ├── main.go
 │   ├── controllers/
-│   │   └── controller.go
+│   │   ├── task_controller.go
+│   │   ├── task_controller_test.go
+│   │   ├── user_controller_test.go
+│   │   └── user_controller.go
 │   └── routers/
 │       └── router.go
 ├── Domain/
@@ -173,16 +176,50 @@ task-manager/
 │   └── user.go
 ├── Infrastructure/
 │   ├── auth_middleWare.go
+│   ├── auth_middleWare_test.go
 │   ├── mongo.go
 │   ├── jwt_service.go
+│   ├── jwt_service_test.go
+│   ├── password_service_test.go
 │   └── password_service.go
 ├── Repositories/
 │   ├── task_repository.go
+│   ├── task_repository_test.go
+│   ├── user_repository_test.go
 │   └── user_repository.go
 └── Usecases/
     ├── task_usecases.go
+    ├── task_usecases_test.go
+    ├── user_usecases_test.go
     └── user_usecases.go
 ```
+
+---
+
+## 🧪 Tests
+
+The application has unit and integration tests for all major layers:
+
+✅ Controller Layer (user_controller.go, task_controller.go)  
+✅ Usecase Layer  
+✅ Repository Layer  
+✅ Infrastructure Layer
+
+### 🔧 How to Run Tests
+
+Make sure you have Go installed and are inside the project root:
+
+```bash
+go test ./...
+```
+
+You can run specific tests using:
+
+```bash
+go test -v ./Repositories
+```
+
+Tests use Testify and MongoDB's mtest for mocking MongoDB responses.
 
 ---
 
